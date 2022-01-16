@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment # 采用deployment部署
+metadata:
+  name: simpleweb
+  namespace: default # 默认命名空间
+  labels:
+    app: simpleweb
+spec:
+  replicas: 2 # 副本设置1个
+  selector:
+    matchLabels:
+      app: simpleweb
+  strategy: # 升级策略，这里副本是一个
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: simpleweb
+    spec:
+      containers: #容器相关配置
+        - args: # 启动命令
+            - gunicorn 
+            - -b
+            - :5000
+            - -k
+            - gevent
+            - run:app
+          env: # 这里通过变量注入的方式配置相关参数，你也可以通过数据挂载的方式将配置挂载到容器指定目录下
+            - name: USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-user-pass
+                  key: username
+            - name: PASS
+              valueFrom:
+                secretKeyRef:
+                  name: db-user-pass
+                  key: password
+            - name: ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: simpleweb-configmap
+                  key: env
+            - name: WEBVERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: simpleweb-configmap
+                  key: webVersion
+          image: zhengquantao/simpleweb:lastest # 镜像地址
+          imagePullPolicy: IfNotPresent
+          name: simpleweb
+          ports: # 暴漏端口
+            - containerPort: 5000
+              name: tcp5000
+              protocol: TCP
+          workingDir: /simpleweb
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 5

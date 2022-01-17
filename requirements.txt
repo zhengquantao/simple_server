@@ -1,0 +1,7 @@
+Flask
+gunicorn
+gevent
+greenlet
+requests
+redis
+psutil

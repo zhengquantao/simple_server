@@ -57,5 +57,9 @@ spec:
               name: tcp5000
               protocol: TCP
           workingDir: /simpleweb
+          resources: # 资源配额
+            limits:  # 限制资源（上限）
+              cpu: "1" # CPU限制，单位是core数
+              memory: "1Gi" # 内存限制
       restartPolicy: Always
       terminationGracePeriodSeconds: 5
